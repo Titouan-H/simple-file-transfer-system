@@ -5,17 +5,28 @@ import threading
 HOST = "127.0.0.1"
 PORT = 5000
 
-server_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-#AF_INET for IPv4
-#SOCK_STREAM for TCP socket
+def handle_client(client_socket,address):
+  print(f"[+] Established connection with {address}")
+  try :
+    message = client_socket.recv(1024).decode()
+    print(message)
+  except Exception as E :
+    print(f"[!] Something went wrong : \n{E}")
 
-server_socket.bind((HOST,PORT))
+  client_socket.close()
 
-client_socket, client_adress = server_socket.accept()
-print(f"Connexion from {client_adress}")
+def start_server():
+  print(f"Starting server on host {HOST} and port {PORT}")
+  server_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+  server_socket.bind((HOST,PORT))
+  server_socket.listen(5)
 
-message = client_socket.recv(1024).decode("utf-8")
-print(f"Message received from client :\n{message}")
+  while True :
+    client_socket, address = server_socket.accept()
+    client_handler = threading.Thread(target=handle_client, 
+      args = (client_socket,address))
+    client_handler.start()
 
-client_socket.close()
-server_socket.close()
+    
+if __name__ == "__main__":
+  start_server()
